@@ -2,7 +2,7 @@ const crypto = require("crypto"); //Para generar tokens con crypto.randomUUID();
 const users = require("../data/users"); //archivo donde se encuentran los usuarios
 const sessions = {}; //objeto para guardar las sesiones activas
 
-//LOGIN ================================
+//LOGIN ========================a========
 exports.login = (req, res) => {
     //Extrae 'cuenta' y 'contrasena' del body de la petición
     const { cuenta } = req.body || {};
