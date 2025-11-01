@@ -4,6 +4,7 @@ const cors = require('cors');
 const app = express();
 const PORT = process.env.PORT || 3000;
 const examenRoutes = require("./routes/examen.routes");
+const certificateRoutes = require("./routes/certificate.routes");
 
 //Middlewares
 app.use(express.json());
@@ -35,6 +36,7 @@ app.use(
 //Montar rutas bajo/api
 app.use("/api/auth", authRoutes);
 app.use("/api/examen", examenRoutes);
+app.use("/api/certificate", certificateRoutes);
 
 //(Opcional) Ruta de salud
 app.get("/health", (_req, res) => res.json({ ok: true }));
