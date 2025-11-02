@@ -6,6 +6,7 @@ const PORT = process.env.PORT || 3000;
 const examenRoutes = require("./routes/examen.routes");
 const certificateRoutes = require("./routes/certificate.routes");
 const pagoRoutes = require("./routes/pago.routes");
+const contactoRoutes = require("./routes/contacto.routes");
 
 //Middlewares
 app.use(express.json());
@@ -39,6 +40,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/examen", examenRoutes);
 app.use("/api/certificate", certificateRoutes);
 app.use("/api/pago", pagoRoutes);
+app.use("/api/contacto", contactoRoutes);
 
 //(Opcional) Ruta de salud
 app.get("/health", (_req, res) => res.json({ ok: true }));
