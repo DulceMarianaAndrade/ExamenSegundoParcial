@@ -32,7 +32,7 @@ exports.login = (req, res) => {
     return res.status(200).json({
         mensaje: "Acceso permitido",
         token,
-        usuario: { cuenta: match.cuenta, nombre: match.nombrecompleto }
+        usuario: { cuenta: match.cuenta, nombre: match.nombreCompleto }
     });
 };
 
