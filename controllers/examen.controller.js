@@ -25,73 +25,133 @@ exports.startExam = (req, res) => {
 
     //Validar si ya realizó un intento antes
     if (user.intento) {
-        return res.status(403).json({ msg: "Sólo se tiene una oportunidad para realizar el examen," });
+        return res.status(403).json({ msg: "Sólo se tiene una oportunidad para realizar el examen." });
     }
 
     //Seleccionar 8 preguntas aleatorias no repetidas
-    const preguntasAleatorias = mezclar(preguntas).slice(0, 8);
+    const preguntasAleatorias = mezclar([...preguntas]).slice(0, 8);
 
     //Mezclar las opciones de respuestas de cada pregunta
     const examen = preguntasAleatorias.map(p => ({
         id: p.id,
         texto: p.texto,
-        opciones: mezclar([...p.opciones]) // copia + mezcla
+        opciones: mezclar([...p.opciones]),
+        respuestaCorrecta: p.respuesta
     }));
 
-    //Guardar intento con respuestas correctas
-    user.intento = {
-        examen,
-        respuestasCorrectas: preguntasAleatorias.map(p => p.respuesta)
+    // ✅ CORREGIDO: Guardar en propiedad temporal para no perder respuestasCorrectasMap
+    user.examenEnCurso = {
+        fecha: new Date().toLocaleString(),
+        examen: examen.map(p => ({
+            id: p.id,
+            texto: p.texto,
+            opciones: p.opciones
+        })),
+        respuestasCorrectasMap: examen.reduce((map, pregunta) => {
+            map[pregunta.id] = pregunta.respuestaCorrecta;
+            return map;
+        }, {})
     };
 
     console.log(`[EXAMEN] Usuario: ${user.cuenta} inició el examen`);
+    console.log(`[EXAMEN] Preguntas asignadas:`, examen.map(p => p.id));
+    console.log(`[EXAMEN] Respuestas correctas:`, user.examenEnCurso.respuestasCorrectasMap);
 
     //Enviar examen al front
-    res.json({ examen });
-
-    //Guardar fecha del intento
-    user.intento = {
-      fecha: new Date().toLocaleString(),
-      examen,
-      respuestasCorrectas: preguntasAleatorias.map(p => p.respuesta)
-    };
+    res.json({ 
+        examen: user.examenEnCurso.examen 
+    });
 };
 
-
-//Recibir y calificar respuestas
+//Recibir y calificar respuestas (CORREGIDO)
 exports.submitAnswers = (req, res) => {
-  const cuenta = req.userCuenta;
-  const user = users.find(u => u.cuenta === cuenta);
+    const cuenta = req.userCuenta;
+    const user = users.find(u => u.cuenta === cuenta);
 
-  if (!user.intento) {
-    return res.status(400).json({ msg: "No has iniciado ningún examen." });
-  }
+    // ✅ CORREGIDO: Verificar examenEnCurso en lugar de intento
+    if (!user || !user.examenEnCurso) {
+        return res.status(400).json({ msg: "No has iniciado ningún examen." });
+    }
 
-  const { respuestas } = req.body;
+    const { respuestas } = req.body;
 
-  if (!respuestas || respuestas.length === 0) {
-    return res.status(400).json({ msg: "No se recibieron respuestas." });
-  }
+    if (!respuestas || !Array.isArray(respuestas) || respuestas.length === 0) {
+        return res.status(400).json({ msg: "No se recibieron respuestas válidas." });
+    }
 
-  const correctas = user.intento.respuestasCorrectas;
-  let aciertos = 0;
+    console.log(`[CALIFICACIÓN] Usuario: ${user.cuenta}`);
+    console.log(`[CALIFICACIÓN] Respuestas recibidas:`, JSON.stringify(respuestas, null, 2));
+    console.log(`[CALIFICACIÓN] Respuestas correctas:`, user.examenEnCurso.respuestasCorrectasMap);
 
-  respuestas.forEach((r, i) => {
-    if (r === correctas[i]) aciertos++;
-  });
+    const respuestasCorrectasMap = user.examenEnCurso.respuestasCorrectasMap;
+    let aciertos = 0;
+    let detalles = [];
 
-  const calificacion = (aciertos / correctas.length) * 100;
-  const aprobado = calificacion >= 70;
+    // Calificar cada respuesta
+    respuestas.forEach(respuestaUsuario => {
+        const preguntaId = respuestaUsuario.preguntaId;
+        const respuestaUsuarioValor = respuestaUsuario.respuesta;
+        const respuestaCorrecta = respuestasCorrectasMap[preguntaId];
 
-  user.aprobado = aprobado;
+        console.log(`[CALIFICACIÓN] Pregunta ${preguntaId}:`);
+        console.log(`  - Usuario: "${respuestaUsuarioValor}"`);
+        console.log(`  - Correcta: "${respuestaCorrecta}"`);
+        console.log(`  - Coincide: ${respuestaUsuarioValor === respuestaCorrecta}`);
 
-  console.log(`[RESULTADO] Usuario: ${user.cuenta} | Calificación: ${calificacion}%`);
+        if (respuestaCorrecta && respuestaUsuarioValor === respuestaCorrecta) {
+            aciertos++;
+            detalles.push({ 
+                preguntaId, 
+                correcta: true,
+                respuestaUsuario: respuestaUsuarioValor,
+                respuestaCorrecta: respuestaCorrecta
+            });
+        } else {
+            detalles.push({ 
+                preguntaId, 
+                correcta: false, 
+                respuestaUsuario: respuestaUsuarioValor,
+                respuestaCorrecta: respuestaCorrecta 
+            });
+        }
+    });
 
-  res.json({
-    calificacion,
-    aprobado,
-    mensaje: aprobado
-      ? "¡Felicidades! Has aprobado la certificación 🎉"
-      : "No aprobaste, puedes intentarlo más adelante."
-  });
+    const totalPreguntas = Object.keys(respuestasCorrectasMap).length;
+    const calificacion = totalPreguntas > 0 ? (aciertos / totalPreguntas) * 100 : 0;
+    const aprobado = calificacion >= 70;
+
+    // ✅ CORREGIDO: Actualizar estado del usuario SIN perder respuestasCorrectasMap
+    user.aprobado = aprobado;
+    user.intento = true; // Marcar que ya realizó el intento
+    
+    // Guardar detalles del resultado
+    user.resultadoExamen = {
+        fecha: new Date().toLocaleString(),
+        calificacion: calificacion,
+        aciertos: aciertos,
+        totalPreguntas: totalPreguntas,
+        detalles: detalles,
+        aprobado: aprobado
+    };
+
+    // Limpiar examen en curso (ya no lo necesitamos)
+    user.examenEnCurso = null;
+
+    console.log(`[RESULTADO] Usuario: ${user.cuenta}`);
+    console.log(`[RESULTADO] Aciertos: ${aciertos}/${totalPreguntas}`);
+    console.log(`[RESULTADO] Calificación: ${calificacion}%`);
+    console.log(`[RESULTADO] Aprobado: ${aprobado}`);
+    console.log(`[ESTADO USUARIO] user.aprobado = ${user.aprobado}, user.intento = ${user.intento}`);
+
+    res.json({
+        aciertos: aciertos,
+        totalPreguntas: totalPreguntas,
+        calificacion: Math.round(calificacion * 100) / 100,
+        aprobado: aprobado,
+        score: calificacion,
+        detalles: detalles,
+        mensaje: aprobado
+            ? "¡Felicidades! Has aprobado la certificación 🎉"
+            : `No aprobaste. Obtuviste ${aciertos}/${totalPreguntas} aciertos (${Math.round(calificacion)}%).`
+    });
 };
