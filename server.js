@@ -30,7 +30,7 @@ app.use(
     },
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
-    credentials: true, // ✅ IMPORTANTE: Permitir credenciales
+    credentials: true, //Permitir credenciales
     optionsSuccessStatus: 200
   })
 );

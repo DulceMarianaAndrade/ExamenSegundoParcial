@@ -39,7 +39,6 @@ exports.startExam = (req, res) => {
         respuestaCorrecta: p.respuesta
     }));
 
-    // ✅ CORREGIDO: Guardar en propiedad temporal para no perder respuestasCorrectasMap
     user.examenEnCurso = {
         fecha: new Date().toLocaleString(),
         examen: examen.map(p => ({
@@ -68,7 +67,6 @@ exports.submitAnswers = (req, res) => {
     const cuenta = req.userCuenta;
     const user = users.find(u => u.cuenta === cuenta);
 
-    // ✅ CORREGIDO: Verificar examenEnCurso en lugar de intento
     if (!user || !user.examenEnCurso) {
         return res.status(400).json({ msg: "No has iniciado ningún examen." });
     }
@@ -120,7 +118,6 @@ exports.submitAnswers = (req, res) => {
     const calificacion = totalPreguntas > 0 ? (aciertos / totalPreguntas) * 100 : 0;
     const aprobado = calificacion >= 70;
 
-    // ✅ CORREGIDO: Actualizar estado del usuario SIN perder respuestasCorrectasMap
     user.aprobado = aprobado;
     user.intento = true; // Marcar que ya realizó el intento
     
@@ -134,7 +131,7 @@ exports.submitAnswers = (req, res) => {
         aprobado: aprobado
     };
 
-    // Limpiar examen en curso (ya no lo necesitamos)
+    // Limpiar examen en curso 
     user.examenEnCurso = null;
 
     console.log(`[RESULTADO] Usuario: ${user.cuenta}`);
