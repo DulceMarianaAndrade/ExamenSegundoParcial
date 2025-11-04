@@ -93,7 +93,7 @@ const generateCertificate = (req, res) => {
     doc.font("Helvetica-Bold")
       .fontSize(20)
       .fillColor("#d4af37")
-      .text("Desarrollo Angular con TypeScript", 0, 280, { align: "center" });
+      .text("Certificación Profesional en Desarrollo Java", 0, 280, { align: "center" });
 
     // Texto final
     doc.font("Helvetica-Oblique")
@@ -129,13 +129,6 @@ const generateCertificate = (req, res) => {
     doc.fontSize(10).fillColor("#444")
       .text("Dulce Mariana Andrade Olvera", doc.page.width - 240, lineY + 5)
       .fontSize(9).text("Directora General - ProgramaCert", doc.page.width - 240, lineY + 18);
-
-    // Footer
-    doc.fontSize(8)
-      .fillColor("#777")
-      .text("ProgramaCert - Centro de Certificación Profesional", 0, doc.page.height - 45, { align: "center" })
-      .text(`Aguascalientes, México | ${date} | ID: ${certId}`, 0, doc.page.height - 30, { align: "center" })
-      .text("Este certificado verifica la finalización exitosa de todos los requisitos del programa", 0, doc.page.height - 15, { align: "center" });
 
     doc.end();
   } catch (error) {
