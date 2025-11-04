@@ -1,4 +1,4 @@
-//para guardar los mensajes
+// Para guardar los mensajes
 const mensajes = [];
 
 exports.enviarMensaje = (req, res) => {
@@ -10,7 +10,7 @@ exports.enviarMensaje = (req, res) => {
     });
   }
 
-  // Guardar mensaje en memoria (simulado)
+  //Guardar mensaje en memoria (simulado)
   const nuevoMensaje = {
     id: mensajes.length + 1,
     nombre,
@@ -20,8 +20,15 @@ exports.enviarMensaje = (req, res) => {
   };
   mensajes.push(nuevoMensaje);
 
-  console.log(`[CONTACTO] Mensaje recibido de ${nombre} <${email}>`);
+  //Mostrar información completa en consola
+  console.log("========================================");
+  console.log(`[CONTACTO] Mensaje recibido de: ${nombre} <${email}>`);
+  console.log(`Fecha: ${nuevoMensaje.fecha}`);
+  console.log("Mensaje:");
+  console.log(`"${mensaje}"`);
+  console.log("========================================");
 
+  //Respuesta al frontend
   res.json({
     msg: "Mensaje enviado correctamente.",
     mensaje: nuevoMensaje
