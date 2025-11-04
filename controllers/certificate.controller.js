@@ -4,6 +4,8 @@ const fs = require("fs");
 const path = require("path");
 
 const logoPath = path.join(__dirname, "../imagenes/logo.png");
+const firma1Path = path.join(__dirname, "../imagenes/firma1.png");
+const firma2Path = path.join(__dirname, "../imagenes/firma2.png");
 
 const generateCertificate = (req, res) => {
   try {
@@ -21,7 +23,7 @@ const generateCertificate = (req, res) => {
       day: "numeric",
     });
 
-    // Crear documento PDF (antes de usarlo)
+    // Crear documento PDF
     const doc = new PDFDocument({
       size: "A4",
       layout: "landscape",
@@ -39,7 +41,7 @@ const generateCertificate = (req, res) => {
     // Fondo claro
     doc.rect(0, 0, doc.page.width, doc.page.height).fill("#fefefe");
 
-    // Agregar logo (solo si existe)
+    // Agregar logo
     if (fs.existsSync(logoPath)) {
       doc.image(logoPath, 70, 40, { width: 100 });
     } else {
@@ -66,7 +68,7 @@ const generateCertificate = (req, res) => {
       .fillColor("#1e4fa1")
       .text("CERTIFICADO", 0, 100, { align: "center" });
 
-    // Subtítulo
+    // Subtítulo decorativo
     doc.moveTo(centerX - 120, 140)
       .lineTo(centerX + 120, 140)
       .strokeColor("#d4af37")
@@ -78,7 +80,7 @@ const generateCertificate = (req, res) => {
       .fillColor("#555")
       .text("Se otorga el presente certificado a", 0, 170, { align: "center" });
 
-    // Nombre
+    // Nombre del estudiante
     doc.font("Helvetica-Bold")
       .fontSize(28)
       .fillColor("#1e4fa1")
@@ -121,16 +123,28 @@ const generateCertificate = (req, res) => {
 
     // Firmas
     const lineY = 450;
+
+    // Firma 1
+    if (fs.existsSync(firma1Path)) {
+      doc.image(firma1Path, 130, lineY - 45, { width: 100 }); // imagen sobre la línea
+    }
     doc.moveTo(120, lineY).lineTo(240, lineY).strokeColor("#444").stroke();
-    doc.fontSize(10).fillColor("#444").text("Georgina Salazar Partida", 120, lineY + 5)
+    doc.fontSize(10).fillColor("#444")
+      .text("Georgina Salazar Partida", 120, lineY + 5)
       .fontSize(9).text("Instructora Certificada", 120, lineY + 18);
 
+    // Firma 2
+    if (fs.existsSync(firma2Path)) {
+      doc.image(firma2Path, doc.page.width - 230, lineY - 45, { width: 100 }); // imagen sobre la línea
+    }
     doc.moveTo(doc.page.width - 240, lineY).lineTo(doc.page.width - 120, lineY).stroke();
     doc.fontSize(10).fillColor("#444")
       .text("Dulce Mariana Andrade Olvera", doc.page.width - 240, lineY + 5)
       .fontSize(9).text("Directora General - ProgramaCert", doc.page.width - 240, lineY + 18);
 
+    // Finalizar PDF
     doc.end();
+
   } catch (error) {
     console.error("Error al generar certificado:", error);
     res.status(500).json({ error: "Error interno al generar el certificado" });
