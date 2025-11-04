@@ -1,6 +1,9 @@
 const PDFDocument = require("pdfkit");
 const users = require("../data/users");
 const fs = require("fs");
+const path = require("path");
+
+const logoPath = path.join(__dirname, "../imagenes/logo.png");
 
 const generateCertificate = (req, res) => {
   try {
@@ -18,7 +21,7 @@ const generateCertificate = (req, res) => {
       day: "numeric",
     });
 
-    // Configurar PDF A4 horizontal
+    // Crear documento PDF (antes de usarlo)
     const doc = new PDFDocument({
       size: "A4",
       layout: "landscape",
@@ -34,8 +37,14 @@ const generateCertificate = (req, res) => {
     doc.pipe(res);
 
     // Fondo claro
-    doc.rect(0, 0, doc.page.width, doc.page.height)
-      .fill("#fefefe");
+    doc.rect(0, 0, doc.page.width, doc.page.height).fill("#fefefe");
+
+    // Agregar logo (solo si existe)
+    if (fs.existsSync(logoPath)) {
+      doc.image(logoPath, 70, 40, { width: 100 });
+    } else {
+      console.warn("⚠️ Logo no encontrado en:", logoPath);
+    }
 
     // Marco dorado
     doc.lineWidth(6)
@@ -55,7 +64,7 @@ const generateCertificate = (req, res) => {
     doc.font("Helvetica-Bold")
       .fontSize(36)
       .fillColor("#1e4fa1")
-      .text("CERTIFICADO DE APROVECHAMIENTO", 0, 100, { align: "center" });
+      .text("CERTIFICADO", 0, 100, { align: "center" });
 
     // Subtítulo
     doc.moveTo(centerX - 120, 140)
@@ -94,19 +103,17 @@ const generateCertificate = (req, res) => {
 
     // Información inferior
     const infoY = 370;
-    doc.font("Helvetica-Bold")
-      .fontSize(10)
-      .fillColor("#444")
+    const certId = `CERT-${Date.now().toString().slice(-6)}-${Math.random().toString(36).substr(2, 4).toUpperCase()}`;
+
+    doc.font("Helvetica-Bold").fontSize(10).fillColor("#444")
       .text("FECHA DEL EXAMEN:", 100, infoY)
-      .font("Helvetica")
-      .text(date, 100, infoY + 15);
+      .font("Helvetica").text(date, 100, infoY + 15);
 
     doc.font("Helvetica-Bold")
       .text("CIUDAD:", centerX - 50, infoY)
       .font("Helvetica")
       .text("Aguascalientes, México", centerX - 50, infoY + 15);
 
-    const certId = `CERT-${Date.now().toString().slice(-6)}-${Math.random().toString(36).substr(2, 4).toUpperCase()}`;
     doc.font("Helvetica-Bold")
       .text("ID DEL CERTIFICADO:", doc.page.width - 230, infoY)
       .font("Helvetica")
