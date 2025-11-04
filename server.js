@@ -15,9 +15,7 @@ const ALLOWED_ORIGINS = [
   'http://localhost:5500',
   'http://127.0.0.1:5500',
   'http://localhost:5501',
-  'http://127.0.0.1:5501',
-  'http://10.13.125.33:5500',
-  'http://10.13.140.88:5500'
+  'http://127.0.0.1:5501'
 ];
 
 // Configuración CORS mejorada
