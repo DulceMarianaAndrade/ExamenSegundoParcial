@@ -4,7 +4,7 @@ const cors = require('cors');
 const app = express();
 const PORT = process.env.PORT || 3000;
 const examenRoutes = require("./routes/examen.routes");
-const certificateRoutes = require("./routes/certificado.routes");
+const certificateRoutes = require("./routes/certificate.routes");
 const pagoRoutes = require("./routes/pago.routes");
 const contactoRoutes = require("./routes/contacto.routes");
 
@@ -40,7 +40,7 @@ app.use(
 //Montar rutas bajo/api
 app.use("/api/auth", authRoutes);
 app.use("/api/examen", examenRoutes);
-app.use("/api/certificado", certificateRoutes);
+app.use("/api/certificate", certificateRoutes);
 app.use("/api/pago", pagoRoutes);
 app.use("/api/contacto", contactoRoutes);
 

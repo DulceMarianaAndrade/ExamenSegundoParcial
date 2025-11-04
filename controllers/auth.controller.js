@@ -54,14 +54,5 @@ exports.logout = (req, res) => {
   res.json({ msg: "Sesión cerrada correctamente" });
 };
 
-exports.verify = (req, res) => res.json({ ok: true });
-
-exports.getUser = (req, res) => {
-  const cuenta = req.userCuenta;
-  const user = users.find(u => u.cuenta === cuenta);
-  if (!user) return res.status(404).json({ msg: "Usuario no encontrado" });
-  res.json({ usuario: user });
-};
-
 //Exportar sesiones para middleware
 exports.sessions = sessions;
