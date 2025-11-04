@@ -8,7 +8,7 @@ const certificateRoutes = require("./routes/certificate.routes");
 const pagoRoutes = require("./routes/pago.routes");
 const contactoRoutes = require("./routes/contacto.routes");
 
-//Middlewares
+// Middlewares
 app.use(express.json());
 
 const ALLOWED_ORIGINS = [
@@ -18,36 +18,52 @@ const ALLOWED_ORIGINS = [
   'http://127.0.0.1:5501'
 ];
 
+// Configuración CORS mejorada
 app.use(
-    cors({ 
-        origin: function (origin, callback) {
-            
-            if (!origin || ALLOWED_ORIGINS.includes(origin)) {
-                return callback(null, true); // null = sin error, true = permitido
-            }
-            //Si el origen no está permitido, se rechaza la solicitud con un mensaje de error.
-            return callback(new Error('Not allowed by CORS: ' + origin));
-        },
-
-        //Especifica los métodos HTTP que este servidor aceptará.
-        methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
-        //Algunos navegadores antiguos esperan un código 200 (en lugar de 204) en respuestas "preflight".
-        optionsSuccessStatus: 200
-    })
+  cors({
+    origin: function (origin, callback) {
+      if (!origin || ALLOWED_ORIGINS.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS: ' + origin));
+      }
+    },
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+    credentials: true, // ✅ IMPORTANTE: Permitir credenciales
+    optionsSuccessStatus: 200
+  })
 );
 
+// Manejar preflight requests
+app.use((req, res, next) => {
+  if (req.method === 'OPTIONS') {
+    res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
+    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
+    res.header('Access-Control-Allow-Credentials', 'true');
+    return res.sendStatus(200);
+  }
+  next();
+});
 
-//Montar rutas bajo/api
+
+// Montar rutas bajo /api
 app.use("/api/auth", authRoutes);
 app.use("/api/examen", examenRoutes);
 app.use("/api/certificate", certificateRoutes);
 app.use("/api/pago", pagoRoutes);
 app.use("/api/contacto", contactoRoutes);
 
-//(Opcional) Ruta de salud
+// Ruta de salud
 app.get("/health", (_req, res) => res.json({ ok: true }));
 
-//Levantar servidor
-app.listen(PORT, () =>{
+// Ruta de verificación de token (si no existe)
+app.get("/api/auth/verify", (req, res) => {
+  res.status(404).json({ error: "Ruta no implementada" });
+});
+
+// Levantar servidor
+app.listen(PORT, () => {
   console.log(`Servidor escuchando en http://localhost:${PORT}`);
 });
