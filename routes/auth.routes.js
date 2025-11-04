@@ -7,4 +7,8 @@ const { login, logout } = require("../controllers/auth.controller");
 router.post("/login", login);
 router.post("/logout", logout);
 
+//Para cargar Sesión
+router.post("/verify", authRequired, verify);
+router.get("/user", authRequired, getUser);
+
 module.exports = router;
