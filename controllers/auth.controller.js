@@ -38,7 +38,7 @@ exports.login = (req, res) => {
 
 //LOGOUT ================================
 exports.logout = (req, res) => {
-  const { token } = req.body;
+  const token = req.headers.authorization?.split(" ")[1];
 
   if (!token || !sessions[token]) {
     return res.status(400).json({ msg: "Token no válido o sesión inexistente" });
@@ -46,10 +46,12 @@ exports.logout = (req, res) => {
 
   // Eliminar token de sesiones
   const cuenta = sessions[token];
-  const user = users.find(u => u.id === userId);
-
+  const user = users.find(u => u.cuenta === cuenta);
+  if (user) {
+    console.log(`[LOGOUT] Usuario: ${user.nombreCompleto} | Token eliminado: ${token}`);
+  } 
   delete sessions[token];
-  console.log(`[LOGOUT] Usuario: ${user.nombre} | Token eliminado: ${token}`);
+  console.log(`[LOGOUT] Sesión cerrada correctamente para token: ${token}`);
 
   res.json({ msg: "Sesión cerrada correctamente" });
 };
