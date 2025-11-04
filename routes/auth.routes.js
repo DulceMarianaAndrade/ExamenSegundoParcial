@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 
-const { login, logout } = require("../controllers/auth.controller");
+const { login, logout, verify, getUser } = require("../controllers/auth.controller");
 
 //Rutas del login/logout
 router.post("/login", login);
